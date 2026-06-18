@@ -1,3 +1,400 @@
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<script>
+
+const LIFF_ID = "2010438961-eaFXVJME";
+
+async function initLine() {
+
+    await liff.init({
+        liffId: LIFF_ID
+    });
+
+    if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+    }
+
+    const profile = await liff.getProfile();
+
+    console.log(profile);
+
+    document.body.insertAdjacentHTML(
+        "afterbegin",
+        `
+        <div style="
+            background:#dff0d8;
+            padding:15px;
+            margin-bottom:10px;
+            border-radius:10px;
+            text-align:center;
+        ">
+            歡迎 ${profile.displayName}
+        </div>
+        `
+    );
+}
+
+initLine();
+
+</script>
+
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>抽號碼系統</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Microsoft JhengHei",sans-serif;
+}
+
+body{
+    background:#f4f6f9;
+    padding:20px;
+}
+
+.container{
+    max-width:600px;
+    margin:auto;
+}
+
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:15px;
+    box-shadow:0 3px 10px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    color:#333;
+}
+
+.input-group{
+    display:flex;
+    gap:10px;
+}
+
+.input-group input{
+    flex:1;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:10px;
+    font-size:16px;
+}
+
+.result{
+    text-align:center;
+}
+
+.number{
+    font-size:72px;
+    font-weight:bold;
+    color:#0078d4;
+    margin:20px 0;
+}
+
+.info{
+    display:flex;
+    justify-content:space-around;
+    margin-top:10px;
+}
+
+.info-box{
+    text-align:center;
+}
+
+.info-box h3{
+    color:#666;
+    font-size:14px;
+}
+
+.info-box p{
+    font-size:22px;
+    font-weight:bold;
+}
+
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.draw-btn{
+    background:#0078d4;
+    color:white;
+}
+
+.draw-btn:hover{
+    background:#0063b1;
+}
+
+.reset-btn{
+    background:#dc3545;
+    color:white;
+}
+
+.export-btn{
+    background:#28a745;
+    color:white;
+}
+
+.list{
+    max-height:250px;
+    overflow-y:auto;
+}
+
+.badge{
+    display:inline-block;
+    background:#0078d4;
+    color:white;
+    padding:8px 12px;
+    margin:4px;
+    border-radius:20px;
+}
+
+.message{
+    text-align:center;
+    color:red;
+    margin-top:10px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🎲 抽號碼系統</h1>
+
+    <div class="card">
+
+        <h3>號碼範圍</h3>
+        <br>
+
+        <div class="input-group">
+            <input type="number" id="startNum" value="1">
+            <input type="number" id="endNum" value="100">
+        </div>
+
+    </div>
+
+    <div class="card result">
+
+        <h3>本次抽出</h3>
+
+        <div class="number" id="result">?</div>
+
+        <div class="info">
+
+            <div class="info-box">
+                <h3>剩餘數量</h3>
+                <p id="remain">100</p>
+            </div>
+
+            <div class="info-box">
+                <h3>已抽數量</h3>
+                <p id="drawnCount">0</p>
+            </div>
+
+        </div>
+
+        <div class="message" id="message"></div>
+
+    </div>
+
+    <div class="card">
+
+        <button class="draw-btn" onclick="drawNumber()">
+            開始抽號
+        </button>
+
+        <button class="reset-btn" onclick="resetDraw()">
+            重置
+        </button>
+
+        <button class="export-btn" onclick="exportCSV()">
+            匯出CSV
+        </button>
+
+    </div>
+
+    <div class="card">
+
+        <h3>已抽出號碼</h3>
+        <br>
+
+        <div id="drawnList" class="list"></div>
+
+    </div>
+
+</div>
+
+<script>
+
+let availableNumbers = [];
+let drawnNumbers = [];
+let isDrawing = false;
+
+initialize();
+
+function initialize(){
+
+    const start =
+        parseInt(document.getElementById("startNum").value);
+
+    const end =
+        parseInt(document.getElementById("endNum").value);
+
+    availableNumbers = [];
+
+    for(let i=start;i<=end;i++){
+        availableNumbers.push(i);
+    }
+
+    drawnNumbers = [];
+
+    updateDisplay();
+}
+
+function drawNumber(){
+
+    if(isDrawing) return;
+
+    if(availableNumbers.length===0){
+
+        document.getElementById("message").innerText =
+        "全部號碼已抽完";
+
+        return;
+    }
+
+    isDrawing = true;
+
+    const resultElement =
+        document.getElementById("result");
+
+    let count = 0;
+
+    const animation =
+        setInterval(()=>{
+
+            resultElement.innerText =
+                Math.floor(Math.random()*999);
+
+            count++;
+
+            if(count>=20){
+
+                clearInterval(animation);
+
+                const randomIndex =
+                    Math.floor(
+                        Math.random() *
+                        availableNumbers.length
+                    );
+
+                const selected =
+                    availableNumbers[randomIndex];
+
+                availableNumbers.splice(randomIndex,1);
+
+                drawnNumbers.unshift(selected);
+
+                resultElement.innerText = selected;
+
+                updateDisplay();
+
+                isDrawing = false;
+
+                if(availableNumbers.length===0){
+
+                    document.getElementById("message").innerText =
+                    "全部號碼已抽完";
+
+                }
+
+            }
+
+        },100);
+
+}
+
+function updateDisplay(){
+
+    document.getElementById("remain").innerText =
+        availableNumbers.length;
+
+    document.getElementById("drawnCount").innerText =
+        drawnNumbers.length;
+
+    const list =
+        document.getElementById("drawnList");
+
+    list.innerHTML = "";
+
+    drawnNumbers.forEach(num=>{
+
+        const badge =
+            document.createElement("span");
+
+        badge.className = "badge";
+
+        badge.innerText = num;
+
+        list.appendChild(badge);
+
+    });
+
+}
+
+function resetDraw(){
+
+    document.getElementById("message").innerText = "";
+
+    document.getElementById("result").innerText = "?";
+
+    initialize();
+
+}
+
+document.getElementById("startNum")
+.addEventListener("change", resetDraw);
+
+document.getElementById("endNum")
+.addEventListener("change", resetDraw);
+
+function exportCSV(){
+
+    if(drawnNumbers.length===0){
+
+        alert("尚無資料可匯出");
+
+        return;
+    }
+
+    let csv = "抽出順序,號碼\n";
+
+    drawnNumbers.forEach((num,index)=>{
+
+        csv +=
+        (index+1) + "," + num + "\n";
+
+    });
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -371,6 +768,77 @@ function exportCSV(){
     link.click();
 
 }
+
+</script>
+
+</body>
+</html>
+    const blob =
+        new Blob([csv],
+        {type:"text/csv;charset=utf-8;"});
+
+    const link =
+        document.createElement("a");
+
+    link.href =
+        URL.createObjectURL(blob);
+
+    link.download =
+        "抽號結果.csv";
+
+    link.click();
+
+}
+
+</script>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+<script>
+
+const LIFF_ID = "2010438961-eaFXVJME";
+
+async function initLine() {
+
+    try {
+
+        await liff.init({
+            liffId: LIFF_ID
+        });
+
+        if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+        }
+
+        const profile = await liff.getProfile();
+
+        const welcomeDiv = document.createElement("div");
+
+        welcomeDiv.style.background = "#dff0d8";
+        welcomeDiv.style.padding = "15px";
+        welcomeDiv.style.marginBottom = "15px";
+        welcomeDiv.style.borderRadius = "10px";
+        welcomeDiv.style.textAlign = "center";
+        welcomeDiv.style.fontWeight = "bold";
+
+        welcomeDiv.innerHTML =
+            `歡迎 ${profile.displayName}`;
+
+        document.body.prepend(welcomeDiv);
+
+        console.log("LINE名稱:", profile.displayName);
+        console.log("LINE UserID:", profile.userId);
+
+    } catch (err) {
+
+        console.error("LIFF錯誤", err);
+
+    }
+
+}
+
+initLine();
 
 </script>
 
