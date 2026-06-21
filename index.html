@@ -18,6 +18,16 @@ body{
     padding:20px;
 }
 
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:url("mazu.jpg") center center no-repeat;
+    background-size:350px;
+    opacity:0.06;
+    z-index:-1;
+}
+    
 .container{
     max-width:600px;
     margin:auto;
@@ -29,11 +39,15 @@ body{
     padding:20px;
     margin-bottom:15px;
     box-shadow:0 3px 10px rgba(0,0,0,.1);
+    border:2px solid #C9A227;
 }
 
 h1{
     text-align:center;
     margin-bottom:20px;
+    font-family:"DFKai-SB","KaiTi",serif;
+    color:#8B1E3F;
+    font-size:36px;
 }
 
 .user-box{
@@ -85,7 +99,7 @@ button:disabled{
 
 <div class="container">
 
-    <h1>🛕 媽祖聖籤抽號系統</h1>
+    <h1>🛕 媽祖聖籤抽號系統 🛕</h1>
 
     <div class="card">
 
@@ -237,14 +251,18 @@ async function drawNumber(){
             if(data.alreadyDrawn){
 
                 document.getElementById("status").innerText =
-                    "您已抽過，號碼：" +
-                    data.number;
+                    "🎋 您已領取聖籤 🎋<br><br>" +
+                    "第 " +
+                    data.number +
+                    " 號聖籤<br><br>" +
+                    "本籤已登錄天榜";
 
             }else{
 
                 document.getElementById("status").innerText =
-                    "恭喜抽到：" +
-                    data.number;
+                    "🎋 第 " +
+                    data.number +
+                    " 號聖籤 🎋<br><br>天上聖母指引";
 
             }
 
