@@ -14,7 +14,7 @@
 }
 
 body{
-    background:#f4f6f9;
+    background:#F8F4EC;
     padding:20px;
 }
 
@@ -46,7 +46,7 @@ h1{
 .number{
     font-size:80px;
     font-weight:bold;
-    color:#0078d4;
+    color:#C9A227;
     text-align:center;
     margin:30px 0;
 }
@@ -56,7 +56,7 @@ button{
     padding:15px;
     border:none;
     border-radius:10px;
-    background:#0078d4;
+    background:#8B1E3F;
     color:white;
     font-size:20px;
     cursor:pointer;
@@ -85,7 +85,7 @@ button:disabled{
 
 <div class="container">
 
-    <h1>🎲 LINE抽籤系統</h1>
+    <h1>🛕 媽祖聖籤抽號系統</h1>
 
     <div class="card">
 
@@ -100,7 +100,7 @@ button:disabled{
         <div id="result" class="number">?</div>
 
         <button id="drawBtn">
-            開始抽號
+            向媽祖請示
         </button>
 
         <div id="status" class="status">
@@ -108,7 +108,7 @@ button:disabled{
         </div>
 
         <div class="small">
-            每個LINE帳號只能抽一次
+            請誠心默念三秒後向媽祖請示
         </div>
 
     </div>
@@ -196,9 +196,43 @@ async function drawNumber(){
             await response.json();
 
         if(data.success){
-
-            document.getElementById("result").innerText =
-                data.number;
+        
+            let count = 0;
+        
+            const animation =
+            setInterval(()=>{
+        
+                document.getElementById("result").innerText =
+                    Math.floor(Math.random()*16)+1;
+        
+                count++;
+        
+                if(count >= 30){
+        
+                    clearInterval(animation);
+        
+                    document.getElementById("result").innerText =
+                        data.number;
+        
+                    if(data.alreadyDrawn){
+        
+                        document.getElementById("status").innerText =
+                            "🎋 您已領取聖籤，第 " +
+                            data.number +
+                            " 號";
+        
+                    }else{
+        
+                        document.getElementById("status").innerText =
+                            "🎋 第 " +
+                            data.number +
+                            " 號聖籤";
+        
+                    }
+        
+                }
+        
+            },100);
 
             if(data.alreadyDrawn){
 
