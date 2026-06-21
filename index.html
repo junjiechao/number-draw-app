@@ -1,111 +1,114 @@
-```html
 <!DOCTYPE html>
 <html lang="zh-Hant">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LINE 抽籤系統</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINE抽籤系統</title>
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft JhengHei", sans-serif;
-        }
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:"Microsoft JhengHei",sans-serif;
+}
 
-        body {
-            background: #f4f6f9;
-            padding: 20px;
-        }
+body{
+    background:#f4f6f9;
+    padding:20px;
+}
 
-        .container {
-            max-width: 600px;
-            margin: auto;
-        }
+.container{
+    max-width:600px;
+    margin:auto;
+}
 
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-        }
+.card{
+    background:white;
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:15px;
+    box-shadow:0 3px 10px rgba(0,0,0,.1);
+}
 
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+h1{
+    text-align:center;
+    margin-bottom:20px;
+}
 
-        .user-box {
-            background: #dff0d8;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            text-align: center;
-        }
+.user-box{
+    background:#dff0d8;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+}
 
-        .number {
-            font-size: 72px;
-            font-weight: bold;
-            color: #0078d4;
-            text-align: center;
-            margin: 20px 0;
-        }
+.number{
+    font-size:80px;
+    font-weight:bold;
+    color:#0078d4;
+    text-align:center;
+    margin:30px 0;
+}
 
-        button {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            background: #0078d4;
-            color: white;
-        }
+button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:#0078d4;
+    color:white;
+    font-size:20px;
+    cursor:pointer;
+}
 
-        button:hover {
-            background: #0063b1;
-        }
+button:disabled{
+    background:#999;
+    cursor:not-allowed;
+}
 
-        .status {
-            text-align: center;
-            margin-top: 15px;
-        }
+.status{
+    text-align:center;
+    margin-top:15px;
+    font-size:18px;
+}
 
-        .loading {
-            color: #666;
-        }
-    </style>
+.small{
+    text-align:center;
+    color:#666;
+    margin-top:10px;
+}
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-    <h1>🎲 LINE 抽籤系統</h1>
+    <h1>🎲 LINE抽籤系統</h1>
 
     <div class="card">
 
         <div id="userInfo" class="user-box">
-            載入 LINE 使用者資訊中...
+            載入LINE資訊中...
         </div>
 
     </div>
 
     <div class="card">
 
-        <div class="number">?</div>
+        <div id="result" class="number">?</div>
 
-        <button onclick="testButton()">
-            測試按鈕
+        <button id="drawBtn">
+            開始抽號
         </button>
 
-        <div class="status" id="status">
-            尚未測試
+        <div id="status" class="status">
+            等待抽號
+        </div>
+
+        <div class="small">
+            每個LINE帳號只能抽一次
         </div>
 
     </div>
@@ -118,14 +121,17 @@
 
 const LIFF_ID = "2010438961-eaFXVJME";
 
+const API_URL =
+"https://script.google.com/macros/s/AKfycbw527IL41J5njh32eVPx0n58SDOFGAHg_PSEZ2K-dpg-q-zxcp5eS0a795TqXgcdNWY/exec";
+
 let currentUser = null;
 
 async function initLine() {
 
     try {
 
-        document.getElementById("status").innerHTML =
-            "初始化 LINE 中...";
+        document.getElementById("status").innerText =
+            "初始化LINE中...";
 
         await liff.init({
             liffId: LIFF_ID
@@ -138,54 +144,98 @@ async function initLine() {
 
         }
 
-        const profile = await liff.getProfile();
+        currentUser = await liff.getProfile();
 
-        currentUser = profile;
+        document.getElementById("userInfo").innerHTML =
+            "<b>歡迎：</b>" +
+            currentUser.displayName;
 
-        document.getElementById("userInfo").innerHTML = `
-            <h3>登入成功</h3>
-            <br>
-            <div><b>LINE名稱：</b>${profile.displayName}</div>
-        `;
-
-        document.getElementById("status").innerHTML =
-            "LINE 登入成功";
-
-        console.log("LINE Profile:", profile);
+        document.getElementById("status").innerText =
+            "LINE登入成功";
 
     }
-    catch(error) {
+    catch(error){
 
         console.error(error);
 
-        document.getElementById("userInfo").innerHTML =
+        document.getElementById("status").innerText =
             "LINE登入失敗";
 
-        document.getElementById("status").innerHTML =
-            error;
+    }
+
+}
+
+async function drawNumber(){
+
+    try{
+
+        if(!currentUser){
+
+            alert("LINE尚未登入");
+
+            return;
+
+        }
+
+        document.getElementById("drawBtn").disabled = true;
+
+        document.getElementById("status").innerText =
+            "抽號中...";
+
+        const url =
+            API_URL +
+            "?userId=" +
+            encodeURIComponent(currentUser.userId) +
+            "&displayName=" +
+            encodeURIComponent(currentUser.displayName);
+
+        const response =
+            await fetch(url);
+
+        const data =
+            await response.json();
+
+        if(data.success){
+
+            document.getElementById("result").innerText =
+                data.number;
+
+            if(data.alreadyDrawn){
+
+                document.getElementById("status").innerText =
+                    "您已抽過，號碼：" +
+                    data.number;
+
+            }else{
+
+                document.getElementById("status").innerText =
+                    "恭喜抽到：" +
+                    data.number;
+
+            }
+
+        }else{
+
+            document.getElementById("status").innerText =
+                data.message;
+
+        }
+
+    }
+    catch(error){
+
+        console.error(error);
+
+        document.getElementById("status").innerText =
+            "系統錯誤";
 
     }
 
 }
 
-function testButton() {
-
-    if (!currentUser) {
-
-        alert("LINE尚未登入");
-
-        return;
-
-    }
-
-    alert(
-        "您好：" +
-        currentUser.displayName +
-        "\n\nUser ID：\n" +
-        currentUser.userId
-    );
-
-}
+document
+.getElementById("drawBtn")
+.addEventListener("click", drawNumber);
 
 initLine();
 
@@ -193,4 +243,4 @@ initLine();
 
 </body>
 </html>
-```
+
