@@ -31,7 +31,7 @@ content:"";
     background-position:center;
     background-size:500px;
 
-    opacity:0.2;
+    opacity:0.08;
 
     pointer-events:none;
 
@@ -60,6 +60,14 @@ h1{
     font-size:36px;
 }
 
+.subtitle{
+    text-align:center;
+    color:#8B1E3F;
+    font-size:18px;
+    margin-top:-10px;
+    margin-bottom:20px;
+    letter-spacing:4px;
+}
 .user-box{
     background:#dff0d8;
     padding:15px;
@@ -111,6 +119,10 @@ button:disabled{
 
     <h1>🛕 媽祖聖籤抽號系統 🛕</h1>
 
+    <div class="subtitle">
+        天上聖母 • 抽號祈福系統
+    </div>
+    
     <div class="card">
 
         <div id="userInfo" class="user-box">
@@ -260,19 +272,21 @@ async function drawNumber(){
 
             if(data.alreadyDrawn){
 
-                document.getElementById("status").innerText =
-                    "🎋 您已領取聖籤 🎋<br><br>" +
+                document.getElementById("status").innerHTML =
+                    "🎋 您已領取聖籤 🎋" + <br><br> +
                     "第 " +
                     data.number +
-                    " 號聖籤<br><br>" +
+                    " 號聖籤 " + <br><br> +
                     "本籤已登錄天榜";
+
+                document.getElementById("drawBtn").style.display = "none";
 
             }else{
 
-                document.getElementById("status").innerText =
+                document.getElementById("status").innerHTML =
                     "🎋 第 " +
                     data.number +
-                    " 號聖籤 🎋<br><br>天上聖母指引";
+                    " 號聖籤 🎋" + <br><br> + "天上聖母指引";
 
             }
 
